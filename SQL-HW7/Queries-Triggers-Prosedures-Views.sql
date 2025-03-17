@@ -83,7 +83,7 @@ EXEC workingMoreThan 1
 
 -- Write the following TRIGGERS:  
 
--- When adding a record to the archive (which contains a rating), adjust the overall rating in the barbers' table accordingly.  
+-- TRIGGER 1:  When adding a record to the archive (which contains a rating), adjust the overall rating in the barbers' table accordingly.  
 DROP TRIGGER IF EXISTS updateTotalScore 
 GO
 CREATE TRIGGER updateTotalScore
@@ -92,7 +92,7 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
 UPDATE Barbers
- SET totalScore = ( SELECT AVG(CASE 
+ SET Rating = ( SELECT AVG(CASE 
   WHEN Score = 'Great' THEN 5
   WHEN Score = 'Good' THEN 4
   WHEN Score = 'Okay' THEN 3
@@ -107,15 +107,51 @@ UPDATE Barbers
 END
 GO
 
--- Querry to check trigger
+-- Querry to check the trigger
 SELECT * FROM Barbers
 GO
 INSERT INTO Scores (Score, ClientID, BarberID)
 VALUES ('Bad', 1, 4);
 SELECT * FROM Barbers
+GO
 
--- Prevent adding an appointment for a barber who is unavailable or already booked at the specified time.  
 
+-- TRIGGER 2: Prevent adding an appointment for a barber who is unavailable or already booked at the specified time.  
+DROP TRIGGER IF EXISTS onTimeComflict 
+GO
 
+CREATE TRIGGER onTimeComflict 
+ON Schedule
+INSTEAD OF INSERT
+AS
+  BEGIN
+  DECLARE @BarberID INT, @Time DATETIME;
+  SELECT @BarberID = BarberID, @Time = Time FROM INSERTED;
+    IF EXISTS (SELECT 1 
+    FROM Schedule 
+    WHERE BarberID = @BarberID 
+    AND Time = @Time)
+        BEGIN
+        PRINT ('The time slot is not avilable');
+        END
+    ELSE
+        BEGIN
+        INSERT INTO Schedule (BarberID, ClientID, ServiceID, Time)
+        SELECT BarberID, ClientID, ServiceID, Time FROM INSERTED;
+        END
+END;
+GO
+
+--Query to check the trigger above: 
+
+--already taken timedate
+INSERT INTO dbo.Schedule  (BarberID, ClientID, ServiceID, Time)
+VALUES
+(2,4,1,'2025-04-01 09:00:00')
+--free timedate
+INSERT INTO dbo.Schedule  (BarberID, ClientID, ServiceID, Time)
+VALUES
+(1,4,1,'2025-04-01 11:00:00')
+SELECT * FROM Schedule
 
 -- Prevent scheduling the same person multiple times with the same barber on the same day.  

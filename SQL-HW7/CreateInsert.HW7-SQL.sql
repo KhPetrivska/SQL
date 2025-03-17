@@ -10,9 +10,11 @@ CREATE TABLE Barbers
   Email VARCHAR(80),
   BirthDate DATE,
   HireDate DATE,
-  Position VARCHAR(50)
+  Position VARCHAR(50),
+  Rating VARCHAR(255)
 )
 GO
+SELECT * FROM Barbers
 
 CREATE TABLE Services
 (ID INT IDENTITY(1,1) PRIMARY KEY,
@@ -47,6 +49,7 @@ Message VARCHAR(MAX),
 VisitID INT FOREIGN KEY REFERENCES Visits(ID),
 AuthorID INT FOREIGN KEY REFERENCES Clients(ID),
 ReviewedBarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+Date DATE
 )
 GO
  
@@ -67,6 +70,20 @@ CREATE TABLE BarberServices (
 
 )
 
+CREATE TABLE Schedule (
+   ID INT IDENTITY(1,1) PRIMARY KEY,
+   BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+   ClientID INT FOREIGN KEY REFERENCES Clients(ID),
+   ServiceID INT FOREIGN KEY REFERENCES Services(ID),
+   Time DATE
+)
+GO
+ALTER TABLE Schedule
+ALTER COLUMN Time DATETIME
+
+SELECT * FROM Schedule
+
+
 -- Insert data - Barbers table
 INSERT dbo.Barbers ( FirstName, LastName, Gender, PhoneNumber , Email,  BirthDate , HireDate, Position ) 
 VALUES 
@@ -76,8 +93,6 @@ VALUES
 ('Sophie', 'Brown', 'Female', '+1 (777) 888-9999', 'sophie.brown@gmail.com', '1992-11-05', '2024-02-01', 'Barber') 
 
 
-
-
 -- Insert data - Services table
 INSERT dbo.Services (Name,Price) 
 VALUES 
@@ -85,7 +100,24 @@ VALUES
 ('Beard Trim', 50.00),  
 ('Shampoo & Styling', 75.00),  
 ('Shaving', 80.00)
-SELECT * FROM Services
+Go 
+
+ALTER TABLE Services
+ADD TimeNeeded TIME;
+
+UPDATE Services
+SET TimeNeeded = '1:30:00'
+WHERE ID = 1
+UPDATE Services
+SET TimeNeeded = '00:30:00'
+WHERE ID = 2
+UPDATE Services
+SET TimeNeeded = '1:00:00'
+WHERE ID = 3
+UPDATE Services
+SET TimeNeeded = '00:30:00'
+WHERE ID = 4
+Go
 
 
 -- Insert data - Clients 
@@ -105,26 +137,30 @@ VALUES
 (3, 4, 1, '2024-03-15'),  
 (4, 3, 2, '2024-03-18'),  
 (2, 1, 4, '2024-03-20');
+
+
 SELECT * FROM Visits
+SELECT * FROM Reviews
+
 
 -- Insert data into Reviews
 INSERT INTO dbo.Reviews (Message, VisitID, AuthorID, ReviewedBarberID, Date)  
 VALUES  
-('Good job. I am happy with my new haircut.', 16, 1, 2, '2025-03-10'),
-('Also service was amazing. I even got a set of hairstyle product samples as a gift. Thanks a lot guys', 16, 1, 2, '2025-03-10'),
-('Great service, would come back again!', 17, 2, 1, '2024-03-12' ),
-('The barber was rude, I did not like the cut.', 18, 3, 4, '2024-03-15'),
-('Highly recommended!', 19, 4, 3, '2024-03-18');
+('Good job. I am happy with my new haircut.', 1, 1, 2, '2025-03-10'),
+('Also service was amazing. I even got a set of hairstyle product samples as a gift. Thanks a lot guys', 1, 1, 2, '2025-03-10'),
+('Great service, would come back again!', 2, 2, 1, '2024-03-12' ),
+('The barber was rude, I did not like the cut.', 3, 3, 4, '2024-03-15'),
+('Highly recommended!',4, 4, 3, '2024-03-18');
 SELECT * FROM Reviews
 
 -- Insert data into Scores 
 INSERT INTO dbo.Scores (Score, ClientID, BarberID, VisitID)  
 VALUES  
-('Great', 1, 2, 16),
-('Great', 1, 2, 16),
-('Good', 2, 1, 17),
-('Bad', 3, 4, 18),
-('Great', 4, 3, 19);
+('Great', 1, 2, 1),
+('Great', 1, 2, 1),
+('Good', 2, 1, 2),
+('Bad', 3, 4, 3),
+('Great', 4, 3, 4);
 SELECT * FROM Scores
 
 -- Insert data into Scores BarberServices 
@@ -146,19 +182,13 @@ VALUES
 (4,1),
 (4,2)
 
+
+INSERT INTO dbo.Schedule  (BarberID, ClientID, ServiceID, Time)
+VALUES
+(2,4,1,'2025-04-01')
+
+
 SELECT * FROM Barbers
-SELECT * FROM Services
+SELECT * FROM Schedule
 
 
--- Update tables for required triggers 
-
-ALTER TABLE Barbers  
-ADD totalScore VARCHAR(255);
-
--- Add additional column to Reviews, insert data - Reviews
-ALTER TABLE dbo.Reviews
-ADD Date DATE
-SELECT * FROM Barbers 
-
-
---TRUNCATE TABLE Scores
