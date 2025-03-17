@@ -20,8 +20,7 @@ Name VARCHAR(50),
 Price DECIMAL(8,2)
 )
 GO
-
-
+SELECT * FROM Services
 
 CREATE TABLE Clients 
  (ID INT IDENTITY(1,1) PRIMARY KEY,
@@ -31,7 +30,6 @@ CREATE TABLE Clients
   Email VARCHAR(80)
 )
 GO
-
 
 -- Create tables with foreing key
 CREATE TABLE Visits
@@ -62,6 +60,13 @@ CREATE TABLE Scores (
 )
 GO
 
+CREATE TABLE BarberServices (
+      ID INT IDENTITY(1,1) PRIMARY KEY,
+       ServiceID INT FOREIGN KEY REFERENCES Services(ID),
+       BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+
+)
+
 -- Insert data - Barbers table
 INSERT dbo.Barbers ( FirstName, LastName, Gender, PhoneNumber , Email,  BirthDate , HireDate, Position ) 
 VALUES 
@@ -69,6 +74,9 @@ VALUES
 ('Alice', 'Johnson', 'Female', '+1 (987) 654-3210', 'alice.johnson@gmail.com', '1995-06-24', '2023-09-15', 'Stylist'),  
 ('Mike', 'Taylor', 'Male', '+1 (555) 789-1234', 'mike.taylor@gmail.com', '1988-03-10', '2021-04-22', 'Master Barber'),  
 ('Sophie', 'Brown', 'Female', '+1 (777) 888-9999', 'sophie.brown@gmail.com', '1992-11-05', '2024-02-01', 'Barber') 
+
+
+
 
 -- Insert data - Services table
 INSERT dbo.Services (Name,Price) 
@@ -99,13 +107,6 @@ VALUES
 (2, 1, 4, '2024-03-20');
 SELECT * FROM Visits
 
-
--- Add additional column to Reviews, insert data - Reviews
-ALTER TABLE dbo.Reviews
-ADD Date DATE
-SELECT * FROM Barbers 
-
-
 -- Insert data into Reviews
 INSERT INTO dbo.Reviews (Message, VisitID, AuthorID, ReviewedBarberID, Date)  
 VALUES  
@@ -125,3 +126,39 @@ VALUES
 ('Bad', 3, 4, 18),
 ('Great', 4, 3, 19);
 SELECT * FROM Scores
+
+-- Insert data into Scores BarberServices 
+
+INSERT INTO dbo.BarberServices  (ServiceID, BarberID)
+VALUES 
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(2,1),
+(2,2),
+(2,3),
+(2,4),
+(3,1),
+(3,2),
+(3,3),
+(3,4),
+(4,1),
+(4,2)
+
+SELECT * FROM Barbers
+SELECT * FROM Services
+
+
+-- Update tables for required triggers 
+
+ALTER TABLE Barbers  
+ADD totalScore VARCHAR(255);
+
+-- Add additional column to Reviews, insert data - Reviews
+ALTER TABLE dbo.Reviews
+ADD Date DATE
+SELECT * FROM Barbers 
+
+
+--TRUNCATE TABLE Scores
