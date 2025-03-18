@@ -155,3 +155,44 @@ VALUES
 SELECT * FROM Schedule
 
 -- Prevent scheduling the same person multiple times with the same barber on the same day.  
+DROP TRIGGER IF EXISTS onAddingSameClient 
+GO
+
+CREATE TRIGGER onAddingSameClient
+ON Schedule 
+INSTEAD OF INSERT 
+AS 
+BEGIN 
+DECLARE @clientIDNew INT
+DECLARE @barberIDNew INT
+DECLARE @dateNew DATE
+SELECT @clientIDNew = ClientID, @barberIDNew = BarberID, @dateNew = Time FROM INSERTED 
+ IF EXISTS (SELECT 1 
+    FROM Schedule 
+    WHERE @clientIDNew = Schedule.ClientID
+    AND @barberIDNew = Schedule.BarberID
+    AND CONVERT(DATE, @dateNew) = CONVERT(DATE, Schedule.Time))
+    BEGIN
+    PRINT 'Client have already booked a time with this barber'
+    END
+  ELSE 
+   BEGIN
+        INSERT INTO Schedule (BarberID, ClientID, ServiceID, Time)
+        SELECT BarberID, ClientID, ServiceID, Time FROM INSERTED;
+        END
+END
+GO
+
+
+--Query to check the trigger above (for insert with 1 row only)
+--will add a record
+INSERT INTO dbo.Schedule  (BarberID, ClientID, ServiceID, Time)
+VALUES
+(1,1,1,'2025-05-29 13:00:00')
+GO
+--will NOT add a record
+INSERT INTO dbo.Schedule  (BarberID, ClientID, ServiceID, Time)
+VALUES
+(1,1,1,'2025-05-29 14:00:00')
+
+SELECT * FROM Schedule
