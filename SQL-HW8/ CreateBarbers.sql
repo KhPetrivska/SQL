@@ -1,0 +1,86 @@
+CREATE DATABASE Barbers
+GO 
+
+
+-- Create tables with no foreing key
+CREATE TABLE Barbers
+( ID INT IDENTITY(1,1) PRIMARY KEY,
+  FirstName VARCHAR(50),
+  LastName VARCHAR(50),
+  Gender VARCHAR(10),
+  PhoneNumber VARCHAR(50),
+  Email VARCHAR(80),
+  BirthDate DATE,
+  HireDate DATE,
+  Position VARCHAR(50),
+  Rating VARCHAR(255)
+)
+
+CREATE TABLE Services
+(ID INT IDENTITY(1,1) PRIMARY KEY,
+Name VARCHAR(50),
+Price DECIMAL(8,2)
+)
+
+
+CREATE TABLE Clients 
+ (ID INT IDENTITY(1,1) PRIMARY KEY,
+  FirstName VARCHAR(50),
+  LastName VARCHAR(50),
+  PhoneNumber VARCHAR(50),
+  Email VARCHAR(80),
+)
+
+
+-- Create tables with foreing key
+CREATE TABLE Visits
+(ID INT IDENTITY(1,1) PRIMARY KEY,
+ ClientID INT  FOREIGN KEY REFERENCES Clients(ID),
+ BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+ ServiceID INT FOREIGN KEY REFERENCES Services(ID),
+ TotalCost DECIMAL(8,2),
+ Date DATE
+)
+
+CREATE TABLE Reviews(
+ID INT IDENTITY(1,1) PRIMARY KEY,
+Message VARCHAR(MAX),
+VisitID INT FOREIGN KEY REFERENCES Visits(ID) UNIQUE,
+AuthorID INT FOREIGN KEY REFERENCES Clients(ID),
+ReviewedBarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+Date DATE
+)
+
+
+
+ 
+
+CREATE TABLE Scores (
+  ID INT IDENTITY(1,1) PRIMARY KEY,
+   Score INT CHECK (Score BETWEEN 1 AND 5),
+  ClientID INT FOREIGN KEY REFERENCES Clients(ID),
+  BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+  VisitID INT FOREIGN KEY REFERENCES Visits(ID)
+)
+
+
+CREATE TABLE BarberServices (
+      ID INT IDENTITY(1,1) PRIMARY KEY,
+       ServiceID INT FOREIGN KEY REFERENCES Services(ID),
+       BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+
+)
+
+CREATE TABLE BarberAvailability (
+   ID INT IDENTITY(1,1) PRIMARY KEY,
+   BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+   AvailableDateTime DATETIME
+)
+
+CREATE TABLE Appointments (
+   ID INT IDENTITY(1,1) PRIMARY KEY,
+   BarberID INT FOREIGN KEY REFERENCES Barbers(ID),
+   ClientID INT FOREIGN KEY REFERENCES Clients(ID),
+   ServiceID INT FOREIGN KEY REFERENCES Services(ID),
+   AppointmentTime DATETIME
+)
