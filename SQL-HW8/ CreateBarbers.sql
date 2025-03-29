@@ -2,6 +2,7 @@ CREATE DATABASE Barbers
 GO 
 
 
+
 -- Create tables with no foreing key
 CREATE TABLE Barbers
 ( ID INT IDENTITY(1,1) PRIMARY KEY,

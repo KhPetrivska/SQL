@@ -1,10 +1,8 @@
 -- INSERT Fake data into Barbers table 
-
-
 INSERT INTO Barbers (FirstName , LastName, Gender, PhoneNumber, Email, BirthDate, HireDate, Position,Rating )
 SELECT TOP 1000000
-'LastName' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)),
 'FirstName' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)),
+'LastName' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)),
  CASE 
         WHEN (ABS(CHECKSUM(NEWID())) % 2) = 0 THEN 'Male'
         ELSE 'Female'
@@ -27,18 +25,14 @@ SELECT * FROM Barbers
 
 
 -- Fake data for Clients
-INSERT INTO Clients (FirstName, LastName, PhoneNumber, Email, Duration)
+INSERT INTO Clients (FirstName, LastName, PhoneNumber, Email)
 SELECT TOP 1000000
-    'Client' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS FirstName,
+    'FirstNAme' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS FirstName,
     'LastName' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS LastName,
-    '555-' + CAST(1000000 + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS PhoneNumber,
+    '380-' + CAST(1000000 + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS PhoneNumber,
     'client' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) + '@client.com' AS Email
 FROM sys.objects s1
 CROSS JOIN sys.objects s2;
-
-SELECT * FROM Clients
-
-
 
 
 -- Fake data for Services
@@ -51,7 +45,7 @@ SELECT TOP 10000
         WHEN (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) % 5) = 3 THEN 'Service4'
         ELSE 'Sevice5'
     END AS ServiceName,
-    CAST((RAND() * 50 + 30) AS DECIMAL(8,2)) 
+    CAST((ABS(CHECKSUM(NEWID())) % 51 + 30) AS DECIMAL(8,2))
 FROM sys.objects s1
 CROSS JOIN sys.objects s2;
 
@@ -72,13 +66,18 @@ CROSS JOIN Clients c
 CROSS JOIN Barbers b
 CROSS JOIN Services s;
 
+SELECT * FROM Visits
+
 
 INSERT INTO Visits (ClientID, BarberID, ServiceID, TotalCost, Date)
  VALUES
-(1,10,3,50.00,'2025-02-02'),
-(2,10,4,76.00,'2025-02-02'),
-(2,10,4,76.00,'2025-02-02')
+(1,10,10003,50.00,'2025-02-02'),
+(2,10,10004,76.00,'2025-02-02'),
+(2,10,10004,76.00,'2025-02-02')
 
+
+
+----------------------------INDEX----------------------------------
 
 
 -- Drop indexes
@@ -86,6 +85,7 @@ DROP INDEX IF EXISTS IX_Barbers_LastName ON Barbers;
 DROP INDEX IF EXISTS IX_Barbers_HireDate ON Barbers;
 DROP INDEX IF EXISTS IX_Visits_ID ON Visits;
 DROP INDEX IF EXISTS IXTotalCostDate ON Visits;  
+
 
 
 -- Clustered index
@@ -105,11 +105,19 @@ ON Barbers(LastName)
 INCLUDE (FirstName, Email);
 GO
 
+SELECT FirstName,LastName, Email
+FROM Barbers 
+WHERE LastName = 'LastName100'
+
 
 CREATE INDEX IX_Barbers_HireDate
 ON Barbers(HireDate)
-INCLUDE (Position, Rating);
+INCLUDE ( FirstName, LastName, Position, Rating);
 GO
+
+SELECT FirstName, LastName  Position, Rating , HireDate
+FROM Barbers
+ORDER BY HireDate
 
 
 SELECT ID, FirstName, LastName, Email, HireDate, Position, Rating
@@ -146,3 +154,23 @@ FROM Visits
 WHERE BarberID = 10
   AND Date = '2025-02-02'
 ORDER BY ClientID;
+
+-- Querry Example: Return  contact information for all senior barbers. 
+DROP VIEW IF EXISTS seniorBarbersInfo
+GO
+CREATE VIEW  seniorBarbersInfo AS
+SELECT FirstName, LastName, Email, PhoneNumber
+FROM Barbers
+WHERE [Position]= 'Senior Barber'
+GO
+SELECT * FROM seniorBarbersInfo
+
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Barbers_By_Position')
+    DROP INDEX IX_Barbers_By_Position ON Barbers;
+GO
+
+CREATE  INDEX IX_Barbers_By_Position
+ON Barbers(Position)
+INCLUDE (FirstName, LastName, Email, PhoneNumber);
+GO
+
