@@ -9,8 +9,8 @@ SELECT TOP 1000000
     END AS Gender,
 '555-' + CAST(1000000 + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) AS PhoneNumber,
 'user' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS NVARCHAR(10)) + '@example.com' AS Email,
-DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 36525), GETDATE()), -- Генерация случайных дат рождения в пределах 100 лет
-DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 7300), GETDATE()), -- Генерация случайных дат найма в пределах 20 лет
+DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 36525), GETDATE()), -- generates random birthdates within the last 100 years
+DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 7300), GETDATE()), -- generates random birthdates within the last 20 years
  CASE 
         WHEN (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) % 3) = 0 THEN 'Chief Barber'
         WHEN (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) % 3) = 1 THEN 'Senior Barber'
@@ -125,24 +125,13 @@ FROM Barbers
 WHERE LastName LIKE '%13%'
 ORDER BY HireDate;
 
----3
-SELECT ClientID, BarberID, ServiceID, TotalCost, Date
-FROM Visits
-WHERE TotalCost > 50
-ORDER BY Date;
-
-CREATE NONCLUSTERED INDEX IXTotalCostDate
-ON Visits(TotalCost, Date)
-GO
-
-
---4  Covering
+--3  Covering
 
 CREATE NONCLUSTERED INDEX IX_Covering_Visits
 ON Visits(ClientID, BarberID, ServiceID, TotalCost, Date); 
 GO
 
---5
+--4
 
 CREATE NONCLUSTERED INDEX IX_Covering_Visits_Client_Barber_Service_Date
 ON Visits(ClientID, BarberID, ServiceID, Date)
